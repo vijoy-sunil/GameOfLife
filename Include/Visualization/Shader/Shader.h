@@ -62,9 +62,9 @@ class ShaderClass{
         /* shader file paths
         */
         const char* vertexPath = 
-        "/Users/vijoys/Desktop/Projects/GameOfLife/Source/Visualization/Shader/ShaderVert.sdr";
+        "/Users/vijoys/Downloads/Projects/GameOfLife/Source/Visualization/Shader/ShaderVert.sdr";
         const char* fragmentPath = 
-        "/Users/vijoys/Desktop/Projects/GameOfLife/Source/Visualization/Shader/ShaderFrag.sdr";
+        "/Users/vijoys/Downloads/Projects/GameOfLife/Source/Visualization/Shader/ShaderFrag.sdr";
         /* Check compilation errors after compiling shaders
          * and linking errors after linking a shader program
         */

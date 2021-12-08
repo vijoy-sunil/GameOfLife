@@ -1,18 +1,10 @@
 #include "../../../Include/Visualization/Grid/Grid.h"
-#include"../../../Include/Visualization/Shader/Shader.h"
+#include "../../../Include/Visualization/Shader/Shader.h"
+#include "../../../Include/Utils/Common.h"
 #include <iostream>
 #include <stdlib.h>
 #include <cassert>
 
-/* call back function to mouse click, the boolean is check
- *-ed in the render loop
-*/
-double xPos, yPos;
-/* this is needed so that we operate only once in the loop.
- * Also, we compute cellX, cellY only if this boolean is 
- * set
-*/
-volatile bool mouseClicked = false;
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
     if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         /* getting cursor position
@@ -437,8 +429,16 @@ void GridClass::setVertexAttribute(dataType dtType){
  * the application closes.
 */
 void GridClass::processInput(GLFWwindow* window){
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    /* s/S to start the game, p/P to stop(pause) the game/
+     * simulation
+    */
+    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cellInitialized = true;
+    if(glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+        cellInitialized = false;
 }
 
 void GridClass::openGLClose(void){
@@ -596,16 +596,6 @@ void GridClass::genCellColor(int i, int j, colorVal cVal, float alpha){
     }
 }
 
-/* this is a wrapper to the genCellColor(), this allows us to
- * pass the cell state directly to set the color
-*/
-void GridClass::setCell(int i, int j, cellState state){
-    colorVal cVal = state == ALIVE ? redVal : blackVal;
-    float alpha = state == ALIVE ? 1.0 : 0.0;  
-
-    genCellColor(i, j, cVal, alpha);
-}
-
 /* this is the main render loop that runs the simulation at 
  * every time step
 */
@@ -668,20 +658,13 @@ void GridClass::runRender(void){
          * files
         */
         Shader.use();
-        /* --------------------------------------------------------
-         * |                   SIMULATE STEP                      |
-         * --------------------------------------------------------
-         * |                  CHANGE CELL COLOR                   |
-         * --------------------------------------------------------
+        /* this could be user input or a random pattern that was
+         * generated
         */
-        if(mouseClicked){
-            mouseAction(xPos, yPos);
-            setCell(cellX, cellY, ALIVE);
-            /* clear the boolean so that it doesn't continue to set
-             * cell state at cellX, cellY
-            */
-            mouseClicked = false;
-        }
+        getInitialCellStates();
+        /* read cell states and set color array
+        */
+        simulationStep();
         /* move color array to GPU
         */
         moveDataToGPU(COLOR);

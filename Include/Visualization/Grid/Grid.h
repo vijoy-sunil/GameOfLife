@@ -47,12 +47,6 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 
-/* will use this to set the quad color state
-*/
-typedef enum{
-    DEAD, 
-    ALIVE
-}cellState;
 /* enum to decide the type of data to be processed
 */
 typedef enum{
@@ -67,12 +61,11 @@ typedef struct{
     float B;
 }colorVal;
 
+/* 2D grid class that abstracts all openGl funcitonalities 
+ * required to set up and run render
+*/
 class GridClass{
     private:
-        /* the grid will be made up of NxN cells, the scale
-         * factor scales up the window and everything in it
-        */
-        int N;
         int scale;
         /* all cells within the grid will be made up of the same 
          * size; cellDim x cellDim
@@ -86,9 +79,6 @@ class GridClass{
          * won't).
         */        
         float axisMin, axisMax;
-        /* cell position based on mouse click
-        */
-        int cellX, cellY;
         /* As input to the graphics pipeline we pass in a list
          * of 3D coordinates that should form the desired shape
          * in an array here called VERTEX DATA; this vertex data 
@@ -107,15 +97,12 @@ class GridClass{
          * We are not using vector here since we need to index
          * into a specific cell to set the colors. It is easier
          * to do this with arrays
-         * 
-         * Total #of elements in color array = 
-         * 4 (RGBA) * 4(vertices per cell) * N * N
         */
         float *color;
-        int colorArraySize;
-        /* predefined color values
+        /* Total #of elements in color array = 
+         * 4 (RGBA) * 4(vertices per cell) * N * N
         */
-        colorVal redVal, greenVal, blueVal, blackVal, whiteVal;
+        int colorArraySize;
         /* With the vertex data defined we'd like to send it as
          * input to the first process of the graphics pipeline: 
          * the vertex shader.
@@ -152,7 +139,6 @@ class GridClass{
         unsigned int VBOVertex, VBOColor, VAO, EBO;
         GLFWwindow* window;
 
-
         GLFWwindow* openGLBringUp(void);
         void genBufferObjects(void);
         void moveDataToGPU(dataType dtType);
@@ -163,14 +149,27 @@ class GridClass{
         void genCellVertices(float i, float j);
         void genCellVerticesWrapper(int i, int j);
         int getEboIdx(int i, int j);
+
+    protected:
+        /* the grid will be made up of NxN cells, the scale
+         * factor scales up the window and everything in it
+        */
+        int N;
+        /* cell position based on mouse click
+        */
+        int cellX, cellY;
+        /* predefined color values
+        */
+        colorVal redVal, greenVal, blueVal, blackVal, whiteVal;
+
         void genCellColor(int i, int j, colorVal cVal, float alpha);
+        void mouseAction(double mouseXPos, double mouseYPos);
+        virtual void getInitialCellStates(void) = 0;
+        virtual void simulationStep(void) = 0;
 
     public:
-        void mouseAction(double mouseXPos, double mouseYPos);
         GridClass(int _N, int _scale, bool noStroke);
         ~GridClass(void);
-
-        void setCell(int i, int j, cellState state);
         void runRender(void);
 };
 #endif /* VISUALIZATION_GRID_H
