@@ -121,14 +121,11 @@ void GameClass::setRandomCellsAlive(int *arr){
             float randomNumber = getRandomAmount(0, 1);
             cellState state = randomNumber > bias ? ALIVE : DEAD;
 
-            arr[getIdx(i, j)] = state;
-            setCellColor(i, j, state);
+            state == ALIVE ? setCellAlive(i, j, cellCurr) : setCellDead(i, j, cellCurr);
         }
     }
 }
 
-/* NOTE: this only has to run once inside the render loop
-*/
 void GameClass::getInitialCellStates(void){
 #if INIT_RANDOM_PATTERN == 1
     /* In the random init case, the user doesn't have to start
