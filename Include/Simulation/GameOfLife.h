@@ -17,13 +17,19 @@ class GameClass: public GridClass{
         /* current and next state (dead/alive) of cells
         */
         int *cellCurr, *cellNext;
+        /* age of cell, starting from ageInitial + ageIncrement 
+         * and maxing out at 1.0
+        */
+        float *cellAge;
+        float ageIncrement, ageInitial;
 
         int getIdx(int i, int j);
         void swap(int **pOne, int **pTwo);
         int getNeighborStateCnt(int i, int j, cellState state);
         int getAliveNeighborCnt(int i, int j);
         int getDeadNeighborCnt(int i, int j);
-        void setCellColor(int i, int j, cellState state);
+        colorVal computeCellColorFromAge(float age);
+        void setCellColorFromAge(int i, int j);
         float getRandomAmount(float start, float end);
 
         bool isCellAlive(int i, int j);

@@ -86,7 +86,7 @@ GridClass::GridClass(int _N, int _scale, bool noStroke){
     for(int i = 0; i < N; i++){
         for(int j = 0; j < N; j++){
             genCellVerticesWrapper(i, j);
-            genCellColor(i, j, whiteVal, 1.0);
+            genCellColor(i, j, blackVal, 1.0);
         }
     }
     /* move data to gpu

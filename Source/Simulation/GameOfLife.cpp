@@ -13,11 +13,19 @@ GameClass::GameClass(int _N, int _scale, bool noStroke): GridClass(_N, _scale, n
     */
     cellCurr = (int*)calloc(N * N, sizeof(int));
     cellNext = (int*)calloc(N * N, sizeof(int));
+    /* create age grid, dead cells have age of 0.0 and live
+     * cells (starting at cellIncrement) with every time step 
+     * increments their age 
+    */
+    cellAge = (float*)calloc(N * N, sizeof(float));
+    ageInitial = 0.0;
+    ageIncrement = 0.1;
 }
 
 GameClass::~GameClass(void){
     free(cellCurr);
     free(cellNext);
+    free(cellAge);
 }
 
 /* convert 2D index into 1D value
@@ -50,6 +58,7 @@ int GameClass::getNeighborStateCnt(int i, int j, cellState state){
     }
     return cnt;
 }
+
 /* get number of alive neighbors (8 neighbors) around cell
  * at pos (i, j)
 */
@@ -64,14 +73,32 @@ int GameClass::getDeadNeighborCnt(int i, int j){
     return getNeighborStateCnt(i, j, DEAD);
 }
 
+colorVal GameClass::computeCellColorFromAge(float age){
+    colorVal cVal = blackVal;
+    /* insert any color change pattern here
+    */
+    cVal.R = age/2.0;
+    cVal.G = age/1.0;
+    cVal.B = age/5.0;
+    return cVal;
+}
+
 /* this is a wrapper to the genCellColor(), this allows us to
- * pass the cell state directly to set the color.
+ * pass the cell age to set the color
  * NOTE: we don't change the cell value in this function, it
  * would be done in the top level function
 */
-void GameClass::setCellColor(int i, int j, cellState state){
-    colorVal cVal = state == ALIVE ? redVal : whiteVal;
-    float alpha = state == ALIVE ? 1.0 : 1.0;  
+void GameClass::setCellColorFromAge(int i, int j){
+    /* compute color based on age, alpha value is set to 1.0
+    */
+    colorVal cVal;
+    float alpha = 1.0; 
+    float age = cellAge[getIdx(i, j)];
+
+    if(age == ageInitial)
+        cVal = blackVal;
+    else
+        cVal = computeCellColorFromAge(age);
     genCellColor(i, j, cVal, alpha);
 }
 
@@ -99,12 +126,18 @@ bool GameClass::isCellAlive(int i, int j){
 
 void GameClass::setCellAlive(int i, int j, int *arr){
     arr[getIdx(i, j)] = ALIVE;
-    setCellColor(i, j, ALIVE);
+    /* set color and increment age
+    */
+    cellAge[getIdx(i, j)] += ageIncrement;
+    setCellColorFromAge(i, j);
 }
 
 void GameClass::setCellDead(int i, int j, int *arr){
     arr[getIdx(i, j)] = DEAD;
-    setCellColor(i, j, DEAD);
+    /* set color and reset age
+    */
+    cellAge[getIdx(i, j)] = ageInitial;
+    setCellColorFromAge(i, j);
 }
 
 /* This is one option to start the game, where instead of
@@ -113,7 +146,7 @@ void GameClass::setCellDead(int i, int j, int *arr){
  * patterns
 */     
 void GameClass::setRandomCellsAlive(int *arr){
-    float bias = 0.60;
+    float bias = 0.65;
     for(int i = 0; i < N; i++){
         for(int j = 0; j < N; j++){
             /* get random state 0: DEAD, 1: ALIVE
@@ -168,7 +201,12 @@ void GameClass::simulationStep(void){
          * NOTE: user key inputs will be missed while the thread is
          * asleep. so keep the sleep time low.
         */
+#if INIT_RANDOM_PATTERN == 1
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+#endif
+#if INIT_USER_SELECT_PATTERN == 1
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
+#endif
         /* ignore mouse clicks while the game/simulation is
          * running
         */
